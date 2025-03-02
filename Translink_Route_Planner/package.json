@@ -1,0 +1,22 @@
+{
+  "name": "route_planner",
+  "version": "1.0.0",
+  "main": "translink-parser.js",
+  "type": "module",
+  "scripts": {
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --coverage"
+  },
+  "jest": {
+    "transform": {}
+  },
+  
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.6",
+    "node-fetch": "^3.3.2",
+    "prompt-sync": "^4.2.0"
+  }
+
+  }
