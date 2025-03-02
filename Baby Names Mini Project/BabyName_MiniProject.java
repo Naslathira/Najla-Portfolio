@@ -1,11 +1,3 @@
-
-/**
- * Write a description of BabyName_MiniProject here.
- * 
- * @author (your name) 
- * @version (a version number or a date)
- */
-
 import edu.duke.*;
 import org.apache.commons.csv.*;
 import java.io.File;
