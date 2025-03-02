@@ -1,15 +1,9 @@
 
-/**
- * Write a description of quiz here.
- * 
- * @author (your name) 
- * @version (a version number or a date)
- */
 import edu.duke.*;
 import org.apache.commons.csv.*;
 import java.io.File;
 
-public class quiz {
+public class CSVParser_Weather {
     
     public CSVRecord coldestHourInFile (CSVParser parser){
         CSVRecord coldest = null;
