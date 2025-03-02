@@ -1,7 +1,7 @@
 import edu.duke.*;
 import org.apache.commons.csv.*;
 
-public class CSV_Parser {
+public class CSVParser_Export {
     public void tester (){
         FileResource fr = new FileResource();
         CSVParser parser = fr.getCSVParser();
