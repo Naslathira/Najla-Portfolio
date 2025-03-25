@@ -1,0 +1,6 @@
+References:
+
+https://dev.to/jvon1904/how-to-wrap-around-a-range-of-numbers-with-the-modulo-cdo
+https://courses.csail.mit.edu/6.857/2018/project/lyndat-nayoung-ssrusso-Enigma.pdf
+https://brilliant.org/wiki/enigma-machine/
+https://medium.com/@goncalorrc/enigma-machine-in-python-part-1-b9e220a8eaf3 
