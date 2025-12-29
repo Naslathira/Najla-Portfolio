@@ -1,0 +1,133 @@
+Question : test error why:
+
+
+           java.lang.AssertionError
+           	at org.junit.Assert.fail(Assert.java:87)
+           	at org.junit.Assert.assertTrue(Assert.java:42)
+           	at org.junit.Assert.assertTrue(Assert.java:53)
+           	at TestGameModel_SpawnObjects.testAsteroidSpawnsWithoutCollision(TestGameModel_SpawnObjects.java:49)
+           	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(DirectMethodHandleAccessor.java:103)
+           	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+           	at
+Answer:
+Ah, nice catch! 🚨 That error tells us:
+
+👉 assertTrue(asteroidFound); is failing.
+
+This means:
+➡ No Asteroid was actually spawned when you called spawnObjects().
+---------------------------------------------------------------------------------------------------------
+Question: pas ngerun main error semua object gamuncul:
+
+          Exception in thread "AWT-EventQueue-0" java.lang.RuntimeException: Image path not found: assets/shield.png
+          	at game.ui.ObjectGraphic.<init>(ObjectGraphic.java:26)
+          	at game.core.ShieldPowerUp.render(ShieldPowerUp.java:29)
+          	at game.ui.gui.Canvas.paintComponent(Canvas.java:54)
+          	at java.desktop/javax.swing.JComponent.paint(JComponent.java:1128)
+          	at
+Answer:
+💥 Error utama:
+pgsql
+Copy
+Edit
+RuntimeException: Image path not found: assets/shield.png
+➡️ Ini terjadi di ObjectGraphic class, tepatnya baris 26:
+
+java
+Copy
+Edit
+throw new RuntimeException("Image path not found: " + imagePath);
+Dan dari trace:
+
+less
+Copy
+Edit
+at game.core.ShieldPowerUp.render(ShieldPowerUp.java:29)
+🚨 Jadi yang crash adalah ShieldPowerUp, lebih spesifik saat dia panggil render() dan mencoba load file image.
+
+
+
+
+
+---------------------------------------------------------------------------------------------------------
+Question : how to setup a dummy ui for junit test 4\
+Answer:
+"To set up a dummy UI for use in JUnit 4 tests, especially if you're testing classes that rely on a UI interface (like UI ui;), you can use an anonymous class or a mock to implement a minimal version of that UI. Here's how:
+
+ ✅ Option 1: Using Anonymous Class (Simple Dummy)
+ If UI is an interface with methods like log(String msg) or displayMessage(String msg), create a minimal inline dummy:
+
+ java
+ Copy
+ Edit
+ UI dummyUI = new UI() {
+     @Override
+     public void log(String message) {
+         // Do nothing or print for debug
+         System.out.println("Log: " + message);
+     }
+
+     @Override
+     public void displayMessage(String message) {
+         // Optional: simulate output
+     }
+
+     // Implement other methods if needed
+ };
+ Then pass it to your class under test:
+
+ java
+ Copy
+ Edit
+ GameController controller = new GameController(dummyUI, achievementManager);
+ ✅ Option 2: Using Mockito (if allowed in your course/project)
+ If you can use Mockito, it’s even easier:
+
+ java
+ Copy
+ Edit
+ import static org.mockito.Mockito.*;
+
+ UI mockUI = mock(UI.class);
+ GameController controller = new GameController(mockUI, achievementManager);
+ You can also verify interactions:
+
+ java
+ Copy
+ Edit
+ verify(mockUI).log("Achievement Mastered: First Blood");
+ ✅ Example JUnit 4 Test with Dummy UI
+ java
+ Copy
+ Edit
+ public class GameControllerTest {
+
+     private GameController controller;
+
+     @Before
+     public void setUp() {
+         UI dummyUI = new UI() {
+             @Override
+             public void log(String message) {
+                 // Optional: Collect logs for assertions
+             }
+
+             @Override
+             public void displayMessage(String message) {
+                 // Stub
+             }
+
+             // Add other methods if required by interface
+         };
+
+         AchievementManager dummyManager = new AchievementManager(new FileHandler());
+         controller = new GameController(dummyUI, dummyManager);
+     }
+
+     @Test
+     public void testStartGameInitialisesProperly() {
+         controller.startGame();
+         // Assertions here
+     }
+ }
+ Let me know if your UI interface or class has specific methods, and I can generate a ready-to-use dummy with only those."
