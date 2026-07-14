@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { recommendSize } from "../utils/sizeRecommendation"
+import { useNavigate } from "react-router-dom"
+import { useAuth } from "../features/auth/useAuth"
 
 function SizeAssistantModal({ product, onClose }) {
+  const navigate = useNavigate()
+  const { bodyProfile } = useAuth()
   const [step, setStep] = useState(1)
   const [measurements, setMeasurements] = useState({
     bust: "",
@@ -104,9 +108,39 @@ function SizeAssistantModal({ product, onClose }) {
     
     if (recommended) {
       setRecommendedSize(recommended)
-      setStep(3)
+      setStep(4)
     } else {
       setErrorMessage("No suitable size found for your measurements.")
+    }
+  }
+
+  function useSavedMeasurements() {
+    const saved = {
+      bust: bodyProfile?.bust,
+      waist: bodyProfile?.waist,
+      hip: bodyProfile?.hip,
+    }
+    const hasAllMeasurements = Object.values(saved).every((value) => Number.isFinite(Number(value)))
+
+    if (!hasAllMeasurements) {
+      onClose()
+      navigate("/body-type", { state: { completeMeasurementsForSizeAssistant: true } })
+      return
+    }
+
+    const normalized = Object.fromEntries(
+      Object.entries(saved).map(([field, value]) => [field, String(value)]),
+    )
+    const recommended = recommendSize(product, normalized)
+    setMeasurements(normalized)
+
+    if (recommended) {
+      setRecommendedSize(recommended)
+      setErrorMessage("")
+      setStep(4)
+    } else {
+      setErrorMessage("Your saved measurements do not match this product's available sizes. You can enter different measurements manually.")
+      setStep(2)
     }
   }
 
@@ -149,6 +183,21 @@ function SizeAssistantModal({ product, onClose }) {
           </>
         )}
         {step === 2 && (
+          <>
+            <h2 id="size-assistant-title" className="text-2xl font-semibold">Choose Your Measurements</h2>
+            <p className="mt-2 text-sm text-gray-500">Use the profile saved from Body Type Calculator, or enter measurements just for this item.</p>
+            {errorMessage && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{errorMessage}</p>}
+            <div className="mt-6 space-y-3">
+              <button type="button" onClick={useSavedMeasurements} className="w-full rounded-full bg-pink-500 px-5 py-3 font-medium text-white hover:bg-pink-600">
+                Use My Body Type Measurements
+              </button>
+              <button type="button" onClick={() => { setErrorMessage(""); setStep(3) }} className="w-full rounded-full border px-5 py-3 font-medium text-gray-700 hover:border-pink-500 hover:text-pink-500">
+                Enter Measurements Manually
+              </button>
+            </div>
+          </>
+        )}
+        {step === 3 && (
           <form onSubmit={handleSubmit}>
             <h2 id="size-assistant-title" className="text-2xl font-semibold">Your Measurements</h2>
             <p className="mt-2 text-sm text-gray-500">
@@ -202,7 +251,7 @@ function SizeAssistantModal({ product, onClose }) {
             </button>
           </form>
         )}
-        {step === 3 && (
+        {step === 4 && (
           <>
             <h2 id="size-assistant-title" className="text-2xl font-semibold text-pink-500">
               Recommended Size

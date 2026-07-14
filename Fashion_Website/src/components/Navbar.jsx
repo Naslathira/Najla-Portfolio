@@ -59,6 +59,7 @@ function Navbar() {
 
         <NavLink to="/shop" className={navClass}>Shop</NavLink>
         <NavLink to="/body-type" className={navClass}>Body Type</NavLink>
+        <NavLink to="/color-analysis" className={navClass}>Color Analysis</NavLink>
         <NavLink to="/cart" className={navClass}>Cart</NavLink>
         <NavLink to="/login" className={navClass}>{user ? user.name : "Login"}</NavLink>
       </div>

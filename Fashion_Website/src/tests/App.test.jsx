@@ -20,4 +20,9 @@ describe('application routing', () => {
     render(<MemoryRouter initialEntries={['/body-type']}><App /></MemoryRouter>)
     expect(screen.getByRole('heading', { name: /body type calculator/i })).toBeVisible()
   })
+
+  it('renders the color analysis route', () => {
+    render(<MemoryRouter initialEntries={['/color-analysis']}><App /></MemoryRouter>)
+    expect(screen.getByRole('heading', { name: /color analysis/i })).toBeVisible()
+  })
 })

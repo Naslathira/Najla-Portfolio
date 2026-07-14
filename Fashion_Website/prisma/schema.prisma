@@ -1,0 +1,35 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  googleId    String       @unique
+  email       String       @unique
+  name        String?
+  picture     String?
+  bodyProfile BodyProfile?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model BodyProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bust      Float?
+  waist     Float?
+  highHip   Float?
+  hip       Float?
+  bodyType  String?
+  hairColor String?
+  eyeColor  String?
+  skinTone  String?
+  undertone String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -10,7 +10,19 @@ export async function apiRequest(path, options = {}) {
     },
   })
 
-  const data = await response.json()
-  if (!response.ok) throw new Error(data.message || "Something went wrong")
+  const contentType = response.headers?.get?.("content-type") || ""
+  let data
+
+  if (contentType.includes("application/json")) {
+    data = await response.json()
+  } else {
+    const text = await response.text()
+    if (!response.ok) {
+      throw new Error(`API request failed (${response.status}). Make sure the backend server is running and up to date.`)
+    }
+    throw new Error(`API returned an unexpected response${text ? ` (${text.slice(0, 40)})` : ""}.`)
+  }
+
+  if (!response.ok) throw new Error(data.message || `Request failed (${response.status})`)
   return data
 }

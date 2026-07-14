@@ -7,6 +7,7 @@ import Login from "./pages/Login"
 import Cart from "./pages/Cart"
 import NotFound from "./pages/NotFound"
 import BodyType from "./pages/BodyType"
+import ColorAnalysis from "./pages/ColorAnalysis"
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
         <Route path="cart" element={<Cart />} />
         <Route path="login" element={<Login />} />
         <Route path="body-type" element={<BodyType />} />
+        <Route path="color-analysis" element={<ColorAnalysis />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>

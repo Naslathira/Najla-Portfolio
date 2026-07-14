@@ -2,6 +2,8 @@ import { useState } from "react"
 import { bodyTypes, calculateBodyType } from "../utils/bodyTypeCalculator"
 import { bodyTypeContent } from "../data/bodyTypeContent"
 import BodyTypeInfoModal from "../components/BodyTypeInfoModal"
+import { Link, useLocation } from "react-router-dom"
+import { useAuth } from "../features/auth/useAuth"
 
 const initialMeasurements = { bust: "", waist: "", highHip: "", hip: "" }
 const exampleMeasurements = { bust: "90", waist: "70", highHip: "85", hip: "96" }
@@ -14,10 +16,14 @@ const measurementGuide = [
 ]
 
 function BodyType() {
+  const { user, bodyProfile, saveProfile } = useAuth()
+  const location = useLocation()
   const [measurements, setMeasurements] = useState(initialMeasurements)
   const [result, setResult] = useState(null)
   const [error, setError] = useState("")
   const [selectedBodyType, setSelectedBodyType] = useState(null)
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
 
   const selectedType = bodyTypes.find((type) => type.id === selectedBodyType)
   const selectedContent = bodyTypeContent[selectedBodyType]
@@ -58,6 +64,42 @@ function BodyType() {
     setError("")
   }
 
+  async function saveResult() {
+    const bodyType = result.primary?.name || result.alternatives[0]?.name
+    try {
+      setSaving(true)
+      setError("")
+      await saveProfile({
+        bust: Number(measurements.bust),
+        waist: Number(measurements.waist),
+        highHip: Number(measurements.highHip),
+        hip: Number(measurements.hip),
+        bodyType,
+      })
+      setResult(null)
+      setIsEditing(false)
+    } catch (saveError) {
+      setError(saveError.message)
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function updateBodyType() {
+    setMeasurements({
+      bust: String(bodyProfile.bust ?? ""),
+      waist: String(bodyProfile.waist ?? ""),
+      highHip: String(bodyProfile.highHip ?? ""),
+      hip: String(bodyProfile.hip ?? ""),
+    })
+    setResult(null)
+    setError("")
+    setIsEditing(true)
+  }
+
+  const hasSavedBodyType = Boolean(user && bodyProfile?.bodyType)
+  const showCalculator = !hasSavedBodyType || isEditing
+
   return (
     <section className="mx-auto max-w-6xl px-6 py-16">
       <div className="text-center">
@@ -67,6 +109,12 @@ function BodyType() {
           Discover which fashion body-shape categories most closely match your proportions using four measurements in centimetres.
         </p>
       </div>
+
+      {location.state?.completeMeasurementsForSizeAssistant && !bodyProfile?.bodyType && (
+        <div role="status" className="mx-auto mt-8 max-w-3xl rounded-2xl border border-pink-200 bg-pink-50 px-5 py-4 text-center text-sm text-pink-800">
+          Complete the calculator and save your measurements to use them automatically in the Size Assistant.
+        </div>
+      )}
 
       <section className="mt-10" aria-labelledby="body-type-library-title">
         <h2 id="body-type-library-title" className="sr-only">Explore body type categories</h2>
@@ -88,7 +136,20 @@ function BodyType() {
         <BodyTypeInfoModal type={selectedType} content={selectedContent} onClose={() => setSelectedBodyType(null)} />
       )}
 
-      <div className="mt-12 grid gap-8 lg:grid-cols-2">
+      {hasSavedBodyType && !isEditing ? (
+        <div className="mx-auto mt-12 max-w-3xl rounded-3xl border border-pink-200 bg-white p-8 text-center shadow-sm">
+          <p className="text-sm font-medium uppercase tracking-wider text-pink-500">Saved to your profile</p>
+          <h2 className="mt-3 text-3xl font-semibold">Your body type is {bodyProfile.bodyType}</h2>
+          <p className="mt-4 text-gray-500">Your latest measurements are saved securely to your account and can be updated whenever they change.</p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3 text-sm text-gray-600">
+            <span className="rounded-full bg-pink-50 px-4 py-2">Bust {bodyProfile.bust} cm</span>
+            <span className="rounded-full bg-pink-50 px-4 py-2">Waist {bodyProfile.waist} cm</span>
+            <span className="rounded-full bg-pink-50 px-4 py-2">High hip {bodyProfile.highHip} cm</span>
+            <span className="rounded-full bg-pink-50 px-4 py-2">Hip {bodyProfile.hip} cm</span>
+          </div>
+          <button type="button" onClick={updateBodyType} className="mt-7 rounded-full bg-pink-500 px-7 py-3 font-medium text-white hover:bg-pink-600">Update My Body Type</button>
+        </div>
+      ) : showCalculator && <div className="mt-12 grid gap-8 lg:grid-cols-2">
         <aside className="rounded-3xl bg-pink-50 p-7">
           <h2 className="text-2xl font-semibold">How to measure</h2>
           <p className="mt-3 text-sm leading-6 text-gray-600">
@@ -138,7 +199,7 @@ function BodyType() {
             <button className="sm:col-span-2 rounded-full bg-pink-500 px-6 py-3 font-medium text-white hover:bg-pink-600">Calculate Body Type</button>
           </form>
         </div>
-      </div>
+      </div>}
 
       {result && (
         <div role="region" aria-label="Body type calculation result" className="mt-10 rounded-3xl border border-pink-200 bg-white p-8" aria-live="polite">
@@ -169,6 +230,14 @@ function BodyType() {
           <p className="mt-6 text-sm text-gray-500">Waist-to-hip ratio: {result.waistHipRatio.toFixed(2)}</p>
           <p className="mt-2 text-xs leading-5 text-gray-400">This result describes fashion proportions only. It is not a medical assessment or a standard your body needs to meet.</p>
           <button type="button" onClick={resetForm} className="mt-6 rounded-full border px-6 py-2.5 text-sm hover:border-pink-500 hover:text-pink-500">Calculate Again</button>
+          {user ? (
+            <button type="button" disabled={saving} onClick={saveResult} className="ml-3 mt-6 rounded-full bg-pink-500 px-6 py-2.5 text-sm font-medium text-white hover:bg-pink-600 disabled:opacity-60">
+              {saving ? "Saving…" : "Save to My Profile"}
+            </button>
+          ) : (
+            <Link to="/login" className="ml-3 mt-6 inline-block rounded-full bg-pink-500 px-6 py-2.5 text-sm font-medium text-white">Login to Save Result</Link>
+          )}
+          {error && <p role="alert" className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">{error}</p>}
         </div>
       )}
     </section>

@@ -3,7 +3,7 @@ import app from './app.js'
 
 dotenv.config()
 
-const requiredEnvironment = ['GOOGLE_CLIENT_ID', 'JWT_SECRET']
+const requiredEnvironment = ['GOOGLE_CLIENT_ID', 'JWT_SECRET', 'DATABASE_URL']
 const missingEnvironment = requiredEnvironment.filter((name) => !process.env[name])
 
 if (missingEnvironment.length > 0) {
@@ -12,6 +12,6 @@ if (missingEnvironment.length > 0) {
 
 const port = process.env.PORT || 5050
 
-app.listen(port, () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server running on http://localhost:${port}`)
 })

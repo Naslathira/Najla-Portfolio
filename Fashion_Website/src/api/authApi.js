@@ -7,4 +7,9 @@ export const authApi = {
     body: JSON.stringify({ credential }),
   }),
   logout: () => apiRequest("/logout", { method: "POST" }),
+  getProfile: () => apiRequest("/profile"),
+  saveBodyProfile: (profile) => apiRequest("/profile/body", {
+    method: "PUT",
+    body: JSON.stringify(profile),
+  }),
 }

@@ -1,8 +1,10 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import ProductDetail from '../pages/ProductDetail'
 import { renderRoute } from './renderWithRouter'
+
+vi.mock('../features/auth/useAuth', () => ({ useAuth: () => ({ bodyProfile: null }) }))
 
 describe('ProductDetail', () => {
   it('renders the product selected by the URL and its size chart', () => {

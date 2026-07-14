@@ -1,7 +1,15 @@
 import { render, screen, within } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { describe, expect, it } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import BodyType from "../pages/BodyType"
+import { MemoryRouter } from "react-router-dom"
+
+const { authState } = vi.hoisted(() => ({ authState: {} }))
+vi.mock("../features/auth/useAuth", () => ({ useAuth: () => authState }))
+
+function renderPage() {
+  return render(<MemoryRouter><BodyType /></MemoryRouter>)
+}
 
 async function enterMeasurements(user, values) {
   await user.type(screen.getByRole("spinbutton", { name: /^bust/i }), String(values.bust))
@@ -11,8 +19,12 @@ async function enterMeasurements(user, values) {
 }
 
 describe("BodyType page", () => {
+  beforeEach(() => {
+    Object.assign(authState, { user: null, bodyProfile: null, saveProfile: vi.fn() })
+  })
+
   it("shows instructions for all four body measurements", () => {
-    render(<BodyType />)
+    renderPage()
     expect(screen.getByRole("heading", { name: /how to measure/i })).toBeVisible()
     expect(screen.getByText(/approximately 18 cm below/i)).toBeVisible()
     expect(screen.getAllByRole("spinbutton")).toHaveLength(4)
@@ -20,7 +32,7 @@ describe("BodyType page", () => {
 
   it("lets visitors explore a content template for every body type", async () => {
     const user = userEvent.setup()
-    render(<BodyType />)
+    renderPage()
     expect(screen.getAllByRole("button", { name: /hourglass|spoon|triangle|rectangle/i })).toHaveLength(7)
     await user.click(screen.getByRole("button", { name: "Triangle", exact: true }))
     const dialog = screen.getByRole("dialog", { name: "Triangle" })
@@ -32,7 +44,7 @@ describe("BodyType page", () => {
 
   it("can fill the form with valid example measurements", async () => {
     const user = userEvent.setup()
-    render(<BodyType />)
+    renderPage()
     await user.click(screen.getByRole("button", { name: /use example values/i }))
     expect(screen.getByRole("spinbutton", { name: /^bust/i })).toHaveValue(90)
     expect(screen.getByRole("spinbutton", { name: /^waist/i })).toHaveValue(70)
@@ -42,7 +54,7 @@ describe("BodyType page", () => {
 
   it("calculates and displays an exact body type", async () => {
     const user = userEvent.setup()
-    render(<BodyType />)
+    renderPage()
     await enterMeasurements(user, { bust: 90, waist: 65, highHip: 80, hip: 92 })
     await user.click(screen.getByRole("button", { name: /calculate body type/i }))
     const result = screen.getByRole("region", { name: /calculation result/i })
@@ -52,7 +64,7 @@ describe("BodyType page", () => {
 
   it("shows multiple close recommendations for an in-between result", async () => {
     const user = userEvent.setup()
-    render(<BodyType />)
+    renderPage()
     await enterMeasurements(user, { bust: 70, waist: 55, highHip: 65, hip: 100 })
     await user.click(screen.getByRole("button", { name: /calculate body type/i }))
     const result = screen.getByRole("region", { name: /calculation result/i })
@@ -63,12 +75,23 @@ describe("BodyType page", () => {
 
   it("validates missing and unrealistic measurements", async () => {
     const user = userEvent.setup()
-    render(<BodyType />)
+    renderPage()
     await user.click(screen.getByRole("button", { name: /calculate body type/i }))
     expect(screen.getByRole("alert")).toHaveTextContent(/complete all four/i)
 
     await enterMeasurements(user, { bust: 20, waist: 20, highHip: 20, hip: 20 })
     await user.click(screen.getByRole("button", { name: /calculate body type/i }))
     expect(screen.getByRole("alert")).toHaveTextContent(/between 30 cm and 250 cm/i)
+  })
+
+  it("shows a saved body type and lets the user update it", async () => {
+    const user = userEvent.setup()
+    authState.user = { id: "user-1" }
+    authState.bodyProfile = { bodyType: "Hourglass", bust: 90, waist: 65, highHip: 80, hip: 92 }
+    renderPage()
+    expect(screen.getByRole("heading", { name: /your body type is hourglass/i })).toBeVisible()
+    expect(screen.queryByRole("button", { name: /calculate body type/i })).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: /update my body type/i }))
+    expect(screen.getByRole("spinbutton", { name: /^bust/i })).toHaveValue(90)
   })
 })
